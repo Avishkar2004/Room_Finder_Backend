@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const sendEmail = require("../utils/mailer");
 
+//! Create an Account
 exports.signup = (req, res) => {
   const { username, email, password } = req.body;
 
@@ -69,6 +70,7 @@ exports.signup = (req, res) => {
   });
 };
 
+//! Log In / already sign in
 exports.login = (req, res) => {
   const { identifier, password } = req.body;
   console.log(req.body);
@@ -133,6 +135,7 @@ exports.getMe = (req, res) => {
   });
 };
 
+// Checking the username / email is already in used or not
 exports.checkAvailability = (req, res) => {
   const { username, email } = req.body;
 
@@ -160,7 +163,6 @@ exports.checkAvailability = (req, res) => {
 };
 
 //! Generate a 6-digit OTP
-
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -198,7 +200,6 @@ exports.requestPasswordReset = (req, res) => {
 };
 
 // Reset Password - verify OTP and Update password
-
 exports.resetPassword = (req, res) => {
   const { email, otp, newPassword } = req.body;
   const query = `SELECT * FROM users WHERE email = ?`;
