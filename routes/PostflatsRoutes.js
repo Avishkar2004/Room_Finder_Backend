@@ -1,6 +1,6 @@
-const express = require("express");
-const multer = require("multer");
-const db = require("../config/db");
+import express from "express";
+import multer from "multer";
+import { db } from "../config/db.js";
 const router = express.Router();
 
 // Setup multer for file uploads (in memory storage)
@@ -54,4 +54,4 @@ router.post("/", upload.single("photos"), (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

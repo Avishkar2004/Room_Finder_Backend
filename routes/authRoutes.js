@@ -1,13 +1,13 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   signup,
   login,
   getMe,
   checkAvailability,
   requestPasswordReset,
   resetPassword,
-} = require("../controllers/authController");
-const { verifyToken } = require("../middlewares/authMiddleware");
+} from "../controllers/authController.js";
+import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,4 +21,4 @@ router.get("/me", verifyToken, getMe);
 router.post("/forgot-password", requestPasswordReset); // Request OTP
 router.post("/reset-password", resetPassword); // Reset password using OTP
 
-module.exports = router;
+export default router;

@@ -1,10 +1,10 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const db = require("../config/db");
-const sendEmail = require("../utils/mailer");
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { db } from "../config/db.js";
+import sendEmail from "../utils/mailer.js";
 
 //! Create an Account
-exports.signup = (req, res) => {
+export const signup = (req, res) => {
   const { username, email, password } = req.body;
 
   // Check if the username or email is already in use
@@ -49,9 +49,10 @@ exports.signup = (req, res) => {
 
           try {
             await sendEmail(
-              email,
-              "Signup Successful",
-              "Welcome! You have successfully signed up."
+              email, // recipientEmail
+              username, // username
+              null, // otp (optional)
+              "signup" // type
             );
             // Return token and user information
             res.status(201).json({
@@ -71,7 +72,7 @@ exports.signup = (req, res) => {
 };
 
 //! Log In / already sign in
-exports.login = (req, res) => {
+export const login = (req, res) => {
   const { identifier, password } = req.body;
   console.log(req.body);
   const query = `SELECT * FROM users WHERE email = ? OR username = ?`;
@@ -120,7 +121,7 @@ exports.login = (req, res) => {
   });
 };
 
-exports.getMe = (req, res) => {
+export const getMe = (req, res) => {
   const userId = req.user.id; // Should be set by JWT middleware
 
   const query = `SELECT id, username, email FROM users WHERE id = ?`;
@@ -136,7 +137,7 @@ exports.getMe = (req, res) => {
 };
 
 // Checking the username / email is already in used or not
-exports.checkAvailability = (req, res) => {
+export const checkAvailability = (req, res) => {
   const { username, email } = req.body;
 
   const query = `SELECT * FROM users WHERE username = ? OR email = ?`;
@@ -166,7 +167,7 @@ exports.checkAvailability = (req, res) => {
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-exports.requestPasswordReset = (req, res) => {
+export const requestPasswordReset = (req, res) => {
   const { email } = req.body;
   const query = `SELECT * FROM users WHERE email = ?`;
 
@@ -200,7 +201,7 @@ exports.requestPasswordReset = (req, res) => {
 };
 
 // Reset Password - verify OTP and Update password
-exports.resetPassword = (req, res) => {
+export const resetPassword = (req, res) => {
   const { email, otp, newPassword } = req.body;
   const query = `SELECT * FROM users WHERE email = ?`;
 

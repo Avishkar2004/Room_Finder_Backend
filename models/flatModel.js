@@ -1,6 +1,6 @@
-const db = require("../config/db");
+import { db } from "../config/db.js";
 
-const getFlats = (callback) => {
+export const getFlats = (callback) => {
   const query = "SELECT * FROM flats";
   db.query(query, (error, results) => {
     if (error) {
@@ -8,8 +8,4 @@ const getFlats = (callback) => {
     }
     callback(null, results);
   });
-};
-
-module.exports = {
-  getFlats,
 };

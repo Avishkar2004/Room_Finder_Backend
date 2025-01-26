@@ -1,8 +1,8 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const flatController = require("../controllers/flatController");
+import { getAllFlats } from "../controllers/flatController.js";
 
 // Route to get all flats
-router.get("/flats", flatController.getAllFlats);
+router.get("/flats", getAllFlats);
 
-module.exports = router;
+export default router;
