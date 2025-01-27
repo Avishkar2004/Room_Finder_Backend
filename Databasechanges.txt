@@ -12,6 +12,7 @@ CREATE TABLE users (
 );
 
 
+
 CREATE TABLE flats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     size VARCHAR(50) NOT NULL,

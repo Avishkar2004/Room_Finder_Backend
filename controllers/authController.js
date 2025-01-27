@@ -6,8 +6,9 @@ import sendEmail from "../utils/mailer.js";
 //! Create an Account
 export const signup = (req, res) => {
   const { username, email, password } = req.body;
+  const userAgent = req.headers["user-agent"];
 
-  // Check if the username or email is already in use
+  // Check if username or email already exists
   const checkQuery = `SELECT * FROM users WHERE username = ? OR email = ?`;
   db.query(checkQuery, [username, email], (err, results) => {
     if (err) {
@@ -15,7 +16,6 @@ export const signup = (req, res) => {
     }
 
     if (results.length > 0) {
-      // Check if username or email is already taken
       const existingUser = results[0];
       if (existingUser.username === username) {
         return res.status(400).json({ message: "Username is already taken" });
@@ -25,48 +25,39 @@ export const signup = (req, res) => {
       }
     }
 
-    // Hash the password and save the new user
+    // Hash password and save the user
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) {
-        return res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ message: "Error hashing password" });
       }
 
-      const insertQuery = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-      db.query(
-        insertQuery,
-        [username, email, hashedPassword],
-        async (err, result) => {
-          if (err) {
-            return res.status(400).json({ message: "Error during signup" });
-          }
-
-          // Generate JWT token
-          const token = jwt.sign(
-            { id: result.insertId, email: email },
-            process.env.JWT_SECRET,
-            { expiresIn: "10h" }
-          );
-
-          try {
-            await sendEmail(
-              email, // recipientEmail
-              username, // username
-              null, // otp (optional)
-              "signup" // type
-            );
-            // Return token and user information
-            res.status(201).json({
-              message: "User registered successfully",
-              token,
-              user: { username, email },
-            });
-          } catch (emailError) {
-            res.status(500).json({
-              message: "Signup successful, but failed to send email.",
-            });
-          }
+      const insertQuery = `INSERT INTO users (username, email, password, last_login_browser) VALUES (?, ?, ?, ?)`;
+      db.query(insertQuery, [username, email, hashedPassword, userAgent], async (err, result) => {
+        if (err) {
+          return res.status(400).json({ message: "Error creating user" });
         }
-      );
+
+        // Generate a JWT token
+        const token = jwt.sign(
+          { id: result.insertId, email },
+          process.env.JWT_SECRET,
+          { expiresIn: "10h" }
+        );
+
+        try {
+          // Send a welcome email
+          await sendEmail(email, username, null, "signup");
+          return res.status(201).json({
+            message: "User registered successfully",
+            token,
+            user: { id: result.insertId, username, email },
+          });
+        } catch (emailError) {
+          return res.status(500).json({
+            message: "Signup successful, but email notification failed",
+          });
+        }
+      });
     });
   });
 };
@@ -143,7 +134,7 @@ export const checkAvailability = (req, res) => {
   const query = `SELECT * FROM users WHERE username = ? OR email = ?`;
   db.query(query, [username, email], (err, results) => {
     if (err) {
-      return res.status(500).json({ message: "Server error" });
+      return res.status(500).json({ field: null, message: "Server error" });
     }
 
     if (results.length > 0) {
@@ -152,14 +143,15 @@ export const checkAvailability = (req, res) => {
         return res
           .status(400)
           .json({ field: "username", message: "Username is already taken" });
-      } else if (existingUser.email === email) {
+      }
+      if (existingUser.email === email) {
         return res
           .status(400)
           .json({ field: "email", message: "Email is already registered" });
       }
     }
 
-    res.status(200).json({ message: "Available" });
+    return res.status(200).json({ field: null, message: "Available" });
   });
 };
 

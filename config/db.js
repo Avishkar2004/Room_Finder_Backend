@@ -1,5 +1,6 @@
 import mysql from "mysql2";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
 
 export const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -15,4 +16,3 @@ db.connect((err) => {
   }
   console.log("Connected to MySQL database.");
 });
-
