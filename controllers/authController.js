@@ -32,32 +32,36 @@ export const signup = (req, res) => {
       }
 
       const insertQuery = `INSERT INTO users (username, email, password, last_login_browser) VALUES (?, ?, ?, ?)`;
-      db.query(insertQuery, [username, email, hashedPassword, userAgent], async (err, result) => {
-        if (err) {
-          return res.status(400).json({ message: "Error creating user" });
-        }
+      db.query(
+        insertQuery,
+        [username, email, hashedPassword, userAgent],
+        async (err, result) => {
+          if (err) {
+            return res.status(400).json({ message: "Error creating user" });
+          }
 
-        // Generate a JWT token
-        const token = jwt.sign(
-          { id: result.insertId, email },
-          process.env.JWT_SECRET,
-          { expiresIn: "10h" }
-        );
+          // Generate a JWT token
+          const token = jwt.sign(
+            { id: result.insertId, email },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN }
+          );
 
-        try {
-          // Send a welcome email
-          await sendEmail(email, username, null, "signup");
-          return res.status(201).json({
-            message: "User registered successfully",
-            token,
-            user: { id: result.insertId, username, email },
-          });
-        } catch (emailError) {
-          return res.status(500).json({
-            message: "Signup successful, but email notification failed",
-          });
+          try {
+            // Send a welcome email
+            await sendEmail(email, username, null, "signup");
+            return res.status(201).json({
+              message: "User registered successfully",
+              token,
+              user: { id: result.insertId, username, email },
+            });
+          } catch (emailError) {
+            return res.status(500).json({
+              message: "Signup successful, but email notification failed",
+            });
+          }
         }
-      });
+      );
     });
   });
 };
@@ -88,7 +92,7 @@ export const login = (req, res) => {
       const token = jwt.sign(
         { id: user.id, email: user.email },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: process.env.JWT_EXPIRES_IN }
       );
 
       try {
@@ -180,7 +184,6 @@ export const requestPasswordReset = (req, res) => {
       if (err) return res.status(500).json({ message: "Server error" });
 
       // Send OTP Vai email
-
       try {
         await sendEmail(email, user.username, otp, "reset");
         res.status(200).json({ message: "OTP sent successfully" });
