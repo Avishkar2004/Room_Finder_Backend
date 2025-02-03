@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
-import sendEmail from "../utils/mailer.js";
+import sendMail from "../utils/mailer.js";
 
 //! Create an Account
 export const signup = (req, res) => {
@@ -49,7 +49,7 @@ export const signup = (req, res) => {
 
           try {
             // Send a welcome email
-            await sendEmail(email, username, null, "signup");
+            await sendMail(email, username, null, "signup");
             return res.status(201).json({
               message: "User registered successfully",
               token,
@@ -71,6 +71,7 @@ export const login = (req, res) => {
   const { identifier, password } = req.body;
   console.log(req.body);
   const query = `SELECT * FROM users WHERE email = ? OR username = ?`;
+
   db.query(query, [identifier, identifier], (err, results) => {
     if (err) {
       return res.status(500).json({ message: "Server error" });
@@ -96,18 +97,15 @@ export const login = (req, res) => {
       );
 
       try {
-        await sendEmail(
-          "Login Successful",
-          user.email,
-          user.username,
-          "You have successfully logged in."
-        );
+        console.log("Sending email to:", user.email);
+        await sendMail(user.email, user.username, null, "login");
         res.status(200).json({
           message: "Login successful",
           token,
           user: { username: user.username, email: user.email },
         });
       } catch (emailError) {
+        console.error("Email error:", emailError);
         res
           .status(500)
           .json({ message: "Login successful, but failed to send email." });
@@ -185,7 +183,7 @@ export const requestPasswordReset = (req, res) => {
 
       // Send OTP Vai email
       try {
-        await sendEmail(email, user.username, otp, "reset");
+        await sendMail(email, user.username, otp, "reset");
         res.status(200).json({ message: "OTP sent successfully" });
       } catch (emailError) {
         console.error("Failed to send OTP email:", emailError);
@@ -213,7 +211,6 @@ export const resetPassword = (req, res) => {
     }
 
     //Hash the new password
-
     bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
       if (err) return res.status(500).json({ message: "Server error" });
 
