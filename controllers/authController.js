@@ -69,7 +69,7 @@ export const signup = (req, res) => {
 //! Log In / already sign in
 export const login = (req, res) => {
   const { identifier, password } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
   const query = `SELECT * FROM users WHERE email = ? OR username = ?`;
 
   db.query(query, [identifier, identifier], (err, results) => {
@@ -97,7 +97,7 @@ export const login = (req, res) => {
       );
 
       try {
-        console.log("Sending email to:", user.email);
+        // console.log("Sending email to:", user.email);
         await sendMail(user.email, user.username, null, "login");
         res.status(200).json({
           message: "Login successful",
